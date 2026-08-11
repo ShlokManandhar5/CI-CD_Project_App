@@ -13,7 +13,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     credentialsId: env.GIT_CREDENTIALS_ID,
-                    url: 'https://github.com/ShlokManandhar5/Devops_project_4.git'
+                    url: 'https://github.com/ShlokManandhar5/CI-CD_Project_App.git'
             }
         }
         stage('Making Image') {
@@ -55,6 +55,7 @@ pipeline {
                 git branch: 'main',
                     credentialsId: env.GIT_CREDENTIALS_ID,
                     url: env.GIT_URL
+                    poll: false
             }
         }
         stage('Update Image Tag') {
