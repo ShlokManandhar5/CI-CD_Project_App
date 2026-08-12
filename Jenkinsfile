@@ -54,7 +54,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     credentialsId: env.GIT_CREDENTIALS_ID,
-                    url: env.GIT_URL
+                    url: env.GIT_URL,
                     poll: false
             }
         }
