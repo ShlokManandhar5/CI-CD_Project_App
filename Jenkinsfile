@@ -52,15 +52,26 @@ pipeline {
         }
         stage('Kubefile Git checkout') {
             steps {
-                git branch: 'main',
-                    credentialsId: env.GIT_CREDENTIALS_ID,
-                    url: env.GIT_URL,
-                    poll: false
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${GIT_CREDENTIALS_ID}",
+                        usernameVariable: 'GIT_USERNAME',
+                        passwordVariable: 'GIT_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        CLEAN_USER=$(printf '%s' "$GIT_USERNAME" | tr -d '[:space:]')
+                        CLEAN_PASS=$(printf '%s' "$GIT_PASSWORD" | tr -d '[:space:]')
+                        rm -rf kubefile-repo
+                        git clone --branch main "https://${CLEAN_USER}:${CLEAN_PASS}@github.com/ShlokManandhar5/golang_kubefile.git" kubefile-repo
+                    '''
+                }
             }
         }
         stage('Update Image Tag') {
             steps {
                 sh '''
+                    cd kubefile-repo
                     sed -i "s|image: shlokmndr/golang-app:.*|image: shlokmndr/golang-app:${IMAGE_VERSION}|" deploy-golang.yaml
                     echo "New image:"
                     grep "image:" deploy-golang.yaml
@@ -77,14 +88,15 @@ pipeline {
                     )
                 ]) {
                     sh '''
+                        cd kubefile-repo
                         git config user.name "shlok"
                         git config user.email "shlokmanandhar5@example.com"
                         git add deploy-golang.yaml
                         git commit -m "Update image tag to ${IMAGE_VERSION}" || true
-        
+
                         CLEAN_USER=$(printf '%s' "$GIT_USERNAME" | tr -d '[:space:]')
                         CLEAN_PASS=$(printf '%s' "$GIT_PASSWORD" | tr -d '[:space:]')
-        
+
                         git push "https://${CLEAN_USER}:${CLEAN_PASS}@github.com/ShlokManandhar5/golang_kubefile.git" HEAD:main
                     '''
                 }
